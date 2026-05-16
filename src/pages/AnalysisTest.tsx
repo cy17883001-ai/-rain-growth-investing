@@ -32,6 +32,8 @@ interface AnalysisResult {
   valuation: {
     upsidePercent: number
     recommendation: string
+    currentMarketCap: number
+    expectedMarketCap3Y: number
   }
   pullback: {
     category: string
@@ -152,8 +154,8 @@ export default function AnalysisTest() {
   }))
 
   const valuationData = [
-    { name: '当前市值', value: 500 },
-    { name: '3年预期市值', value: 800 },
+    { name: '当前市值', value: result.valuation.currentMarketCap },
+    { name: '3年预期市值', value: result.valuation.expectedMarketCap3Y },
   ]
 
   const pullbackData = [

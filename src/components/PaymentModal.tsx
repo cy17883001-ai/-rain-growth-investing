@@ -83,7 +83,7 @@ export default function PaymentModal({
                 </div>
                 <div className="w-[280px] h-[280px] bg-bg-card rounded-xl border border-bg-border shadow-lg flex items-center justify-center overflow-hidden">
                   <img
-                    src="/mnt/agents/upload/15829be67444ed247807029f10997cd8.jpg"
+                    src="/wechat-qr.png"
                     alt="微信二维码"
                     className="w-full h-full object-cover"
                     onError={(e) => {

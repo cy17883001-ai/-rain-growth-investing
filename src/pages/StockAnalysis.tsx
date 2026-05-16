@@ -60,6 +60,8 @@ interface AnalysisResult {
   valuation: {
     upsidePercent: number
     recommendation: string
+    currentMarketCap: number
+    expectedMarketCap3Y: number
   }
   pullback: {
     category: string
@@ -129,13 +131,50 @@ export default function StockAnalysis() {
     setAnalysis(null)
 
     try {
-      const [quoteRes, analysisRes] = await Promise.all([
-        axios.get(`${API_BASE}/stocks/${encodeURIComponent(s)}`),
-        axios.post(`${API_BASE}/analysis/full`, TEST_PAYLOAD),
-      ])
+      const quoteRes = await axios.get(`${API_BASE}/stocks/${encodeURIComponent(s)}`)
+      const stockData = quoteRes.data.data as StockData
+      setStock(stockData)
 
-      setStock(quoteRes.data.data)
-      setAnalysis(analysisRes.data.data)
+      if (stockData) {
+        const marketCapYi = stockData.totalMarketCap ? stockData.totalMarketCap / 1e8 : 500
+        const analysisPayload = {
+          symbol: stockData.symbol,
+          financials: {
+            revenueGrowth: 20,
+            netProfitGrowth: 25,
+            peg: stockData.peRatio ? stockData.peRatio / 20 : 1.5,
+            rdRatio: 5,
+            grossMarginTrend: 'stable' as const,
+            operatingCashFlowGrowth: 20,
+            marketSpace: 30,
+          },
+          moat: {
+            techIteration: 3, rdPipeline: 3, marketShareGain: 3,
+            scaleEffect: 3, platformStickiness: 3, policyBarrier: 3, managementExecution: 3,
+          },
+          risks: {
+            hypeWithoutEarnings: false,
+            pegOver3: stockData.peRatio ? stockData.peRatio / 20 > 3 : false,
+            unverifiableModel: false,
+            singleClientDependency: false,
+            cashBurnExceedsGeneration: false,
+            goodwillOver30Percent: false,
+          },
+          valuation: {
+            currentMarketCap: marketCapYi,
+            expectedMarketCap3Y: marketCapYi * 1.3,
+          },
+          pullback: {
+            priceDropPercent: Math.abs(stockData.changePercent) > 5 ? Math.abs(stockData.changePercent) : 0,
+            revenueImpact: 'none' as const,
+            industryCycle: 'stable' as const,
+            valuationVsHistory: stockData.peRatio && stockData.peRatio > 30 ? 'high' as const : 'fair' as const,
+            narrativeChange: false,
+          },
+        }
+        const analysisRes = await axios.post(`${API_BASE}/analysis/full`, analysisPayload)
+        setAnalysis(analysisRes.data.data)
+      }
     } catch (err: unknown) {
       const msg = axios.isAxiosError(err) ? err.response?.data?.message || err.message : '请求失败'
       setError(msg)
@@ -444,11 +483,11 @@ export default function StockAnalysis() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center p-6 rounded-xl bg-bg-elevated border border-bg-border">
-                        <div className="text-3xl font-bold text-text">500<span className="text-lg text-text-muted">亿</span></div>
+                        <div className="text-3xl font-bold text-text">{analysis.valuation.currentMarketCap.toFixed(0)}<span className="text-lg text-text-muted">亿</span></div>
                         <div className="text-sm text-text-muted mt-1">当前市值</div>
                       </div>
                       <div className="text-center p-6 rounded-xl bg-bg-elevated border border-bg-border">
-                        <div className="text-3xl font-bold text-emerald-400">800<span className="text-lg text-text-muted">亿</span></div>
+                        <div className="text-3xl font-bold text-emerald-400">{analysis.valuation.expectedMarketCap3Y.toFixed(0)}<span className="text-lg text-text-muted">亿</span></div>
                         <div className="text-sm text-text-muted mt-1">3年预期市值</div>
                       </div>
                     </div>
@@ -562,43 +601,3 @@ const RISK_LABELS: Record<string, string> = {
   goodwillOver30Percent: '商誉/净资产>30%',
 }
 
-const TEST_PAYLOAD = {
-  symbol: 'TEST-STOCK',
-  financials: {
-    revenueGrowth: 35,
-    netProfitGrowth: 42,
-    peg: 0.85,
-    rdRatio: 12,
-    grossMarginTrend: 'up',
-    operatingCashFlowGrowth: 40,
-    marketSpace: 60,
-  },
-  moat: {
-    techIteration: 4,
-    rdPipeline: 5,
-    marketShareGain: 4,
-    scaleEffect: 3,
-    platformStickiness: 4,
-    policyBarrier: 3,
-    managementExecution: 5,
-  },
-  risks: {
-    hypeWithoutEarnings: false,
-    pegOver3: false,
-    unverifiableModel: false,
-    singleClientDependency: false,
-    cashBurnExceedsGeneration: false,
-    goodwillOver30Percent: false,
-  },
-  valuation: {
-    currentMarketCap: 500,
-    expectedMarketCap3Y: 800,
-  },
-  pullback: {
-    priceDropPercent: 18,
-    revenueImpact: 'none',
-    industryCycle: 'stable',
-    valuationVsHistory: 'high',
-    narrativeChange: false,
-  },
-}
