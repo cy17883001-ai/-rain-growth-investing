@@ -1,0 +1,6 @@
+export { default as Home } from './Home'
+export { default as Dashboard } from './Dashboard'
+export { default as StockAnalysis } from './StockAnalysis'
+export { default as Watchlist } from './Watchlist'
+export { default as Settings } from './Settings'
+export { default as NotFound } from './NotFound'
