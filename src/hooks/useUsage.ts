@@ -11,6 +11,7 @@ export interface UsageState {
   activatedUntil: string | null
   canUse: boolean
   loading: boolean
+  error: string | null
 }
 
 export function useUsage() {
@@ -21,6 +22,7 @@ export function useUsage() {
     activatedUntil: null,
     canUse: true,
     loading: true,
+    error: null,
   })
 
   const fetchStatus = useCallback(async () => {
@@ -35,9 +37,11 @@ export function useUsage() {
         activatedUntil: d.activatedUntil,
         canUse: d.canUse,
         loading: false,
+        error: null,
       })
-    } catch {
-      setState((s) => ({ ...s, loading: false }))
+    } catch (err: unknown) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message || err.message : '获取状态失败'
+      setState((s) => ({ ...s, loading: false, error: msg }))
     }
   }, [])
 
@@ -55,7 +59,7 @@ export function useUsage() {
     }
   }, [fetchStatus])
 
-  const consumeUse = useCallback(async (): Promise<boolean> => {
+  const consumeUse = useCallback(async (): Promise<{ ok: boolean; exhausted: boolean; error?: string }> => {
     try {
       const fp = getDeviceFingerprint()
       const { data } = await axios.post(`${API_BASE}/payment/consume`, fp)
@@ -63,14 +67,18 @@ export function useUsage() {
         ...s,
         freeUsesRemaining: data.data.freeUsesRemaining,
         canUse: data.data.canUse,
+        error: null,
       }))
-      return true
+      return { ok: true, exhausted: false }
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.status === 403) {
-        setState((s) => ({ ...s, canUse: false }))
-        return false
+        setState((s) => ({ ...s, canUse: false, error: null }))
+        return { ok: false, exhausted: true }
       }
-      return false
+      // Server error or network issue — don't treat as "no uses left"
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message || err.message : '服务暂时不可用'
+      setState((s) => ({ ...s, error: msg }))
+      return { ok: false, exhausted: false, error: msg }
     }
   }, [])
 

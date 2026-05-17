@@ -119,9 +119,13 @@ export default function StockAnalysis() {
     if (!s.trim()) return
 
     // Check usage first
-    const consumed = await usage.consumeUse()
-    if (!consumed) {
-      setShowPayment(true)
+    const consumeResult = await usage.consumeUse()
+    if (!consumeResult.ok) {
+      if (consumeResult.exhausted) {
+        setShowPayment(true)
+      } else {
+        setError(consumeResult.error || '服务暂时不可用，请稍后重试')
+      }
       return
     }
 
