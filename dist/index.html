@@ -5,10 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>雨的成长投资分析系统</title>
-    <script type="module" crossorigin src="/assets/index-CZxaq-sk.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CCLZKvlM.css">
+    <script type="module" crossorigin src="/assets/index-uPXhuqIz.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DlLDB177.css">
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.onerror = function(msg, url, line) {
+        var d = document.createElement('div');
+        d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#b91c1c;color:#fff;padding:12px;font-size:13px;font-family:monospace;';
+        d.textContent = 'JS ERROR: ' + msg + ' at ' + url + ':' + line;
+        document.body.appendChild(d);
+      };
+      window.addEventListener('unhandledrejection', function(e) {
+        var d = document.createElement('div');
+        d.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#b91c1c;color:#fff;padding:12px;font-size:13px;font-family:monospace;';
+        d.textContent = 'PROMISE ERROR: ' + e.reason;
+        document.body.appendChild(d);
+      });
+    </script>
   </body>
 </html>
